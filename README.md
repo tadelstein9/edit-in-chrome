@@ -35,8 +35,16 @@ A block you are editing turns yellow. A block you have changed keeps a gold bar 
 its left edge, and the bar at the top counts them. Ctrl+S saves and reports how many
 blocks it wrote.
 
+Empty a block and it disappears from the page, and disappears from the file when
+you save. Removing a block renumbers the ones after it, so the page reloads itself
+from the file rather than trusting indices that just went stale.
+
 Headings, blockquotes and list items keep their markers — those live in the source,
 not in the fragment the browser hands back, and the program puts them on again.
+
+Non-breaking spaces are stripped on the way back. A browser inserts them as you
+type, especially either side of inline code, and they survive the round trip as
+U+00A0 — invisible on the page, and a search for your own sentence never finds it.
 
 A fenced code block is served read-only, greyed. Editing one in a browser and
 converting it back is how indentation dies.
