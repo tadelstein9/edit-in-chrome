@@ -62,6 +62,17 @@ page has to be served by a program that owns the file — and once a program is
 serving the page, the editor ships inside it. Nothing to install and nothing that
 breaks when Chrome changes its extension API.
 
+## Who wrote this
+
+Claude Code wrote this for me, in one session on 4 August 2026.
+
+I described the problem. I wanted to read a draft the way a reader sees it and fix
+what I found while I was looking at it, and I didn't want a round trip that rewrote
+the whole file to change one word. Claude built the thing that does it, including
+the block-level write-back that keeps the diff honest.
+
+— Tom Adelstein
+
 ## License
 
 MIT. See LICENSE.
