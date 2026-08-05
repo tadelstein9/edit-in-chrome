@@ -9,6 +9,29 @@ the paragraphs you actually touched rewritten.
 
 Open the address it prints. Type into the page. **Ctrl+S** writes the file.
 
+## Install
+
+Python 3 is already on a Linux machine. Install pandoc, then clone and run:
+
+```
+sudo apt install pandoc
+git clone https://github.com/tadelstein9/edit-in-chrome
+cd edit-in-chrome
+./edit-server.py FILE.md
+```
+
+The file arrives executable, so there is no `chmod` step.
+
+To reach it from any directory, link it onto your PATH:
+
+```
+mkdir -p ~/bin
+ln -s "$PWD/edit-server.py" ~/bin/edit-in-chrome
+```
+
+Log out and back in if `~/bin` was not already on your PATH. Then the command is
+`edit-in-chrome FILE.md` wherever you are.
+
 ## The problem this solves
 
 You want to read a draft the way a reader will see it, and fix what you find while
