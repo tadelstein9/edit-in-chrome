@@ -87,15 +87,19 @@ PAGE = """<!doctype html>
  h1, h2, h3 {{ font-family: Helvetica, Arial, sans-serif; line-height: 1.25; }}
  code {{ font: 15px/1.4 ui-monospace, monospace; background: #f2f2f2; padding: 1px 3px; }}
  blockquote {{ margin-left: 0; padding-left: 1rem; border-left: 3px solid #ddd; color: #444; }}
+ /* user-select:none keeps Ctrl+A off the bar. Without it a select-all on this
+    page carries the filename and "Ctrl+S saves" into the clipboard along with
+    the document — which is the mistake /plain exists to prevent. */
  #bar {{ position: fixed; top: 0; left: 0; right: 0; padding: .5rem 1rem;
-         font: 13px/1.4 Helvetica, Arial, sans-serif; background: #1a1a1a; color: #eee; }}
+         font: 13px/1.4 Helvetica, Arial, sans-serif; background: #1a1a1a; color: #eee;
+         -webkit-user-select: none; user-select: none; }}
  #bar b {{ color: #ffd54a; }}
 </style>
 <div id="bar"><b>{name}</b> &middot; edit the page &middot; <b>Ctrl+S</b> saves &middot;
 <span id="status">no changes</span>
 <a href="/plain" target="_blank" style="float:right;color:#ffd54a">plain copy &rarr;</a></div>
 <div style="height:2.5rem"></div>
-{body}
+<div id="doc">{body}</div>
 <script>
 const original = {originals};
 const status = document.getElementById('status');
@@ -116,6 +120,25 @@ for (const el of document.querySelectorAll('[data-block]')) {{
     status.textContent = parts.length ? parts.join(', ') : 'no changes';
   }});
 }}
+
+// Ctrl+A selects the document and not the bar above it. user-select:none on
+// the bar stops a drag from reaching it but does not keep select-all out, so
+// take the key and set the range ourselves. Inside a block being edited,
+// leave Ctrl+A alone — there it means select this paragraph.
+document.addEventListener('keydown', (e) => {{
+  if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'a') return;
+  const inBlock = document.activeElement &&
+                  document.activeElement.hasAttribute &&
+                  document.activeElement.hasAttribute('data-block');
+  if (inBlock) return;
+  e.preventDefault();
+  const doc = document.getElementById('doc');
+  const range = document.createRange();
+  range.selectNodeContents(doc);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}});
 
 document.addEventListener('keydown', async (e) => {{
   if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 's') return;
