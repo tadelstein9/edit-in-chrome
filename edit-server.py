@@ -6,6 +6,11 @@
 Then open the address it prints. Edit the page like a document. Ctrl+S writes
 the file. The tab tells you what it saved.
 
+/plain serves the same file with no editing attributes on it, for copying into
+somewhere else. Copying from the editable page carried every paragraph into
+Substack as a blockquote — the editor's own padding and margins travel with the
+selection, and the receiving editor reads them as indentation.
+
 WHY NOT AN EXTENSION. An extension that edits the rendered page and cannot write
 back is a nicer-looking Substack — Tom's point, 2026-08-04. The write-back is the
 whole feature, and once the page is served by our own program the editor can ship
@@ -87,7 +92,8 @@ PAGE = """<!doctype html>
  #bar b {{ color: #ffd54a; }}
 </style>
 <div id="bar"><b>{name}</b> &middot; edit the page &middot; <b>Ctrl+S</b> saves &middot;
-<span id="status">no changes</span></div>
+<span id="status">no changes</span>
+<a href="/plain" target="_blank" style="float:right;color:#ffd54a">plain copy &rarr;</a></div>
 <div style="height:2.5rem"></div>
 {body}
 <script>
@@ -140,6 +146,19 @@ document.addEventListener('keydown', async (e) => {{
 """
 
 
+PLAIN = """<!doctype html>
+<meta charset="utf-8">
+<title>{title}</title>
+<style>
+ body {{ max-width: 40rem; margin: 3rem auto; padding: 0 1.5rem;
+        font: 17px/1.6 Georgia, serif; color: #1a1a1a; }}
+ h1, h2, h3 {{ font-family: Helvetica, Arial, sans-serif; line-height: 1.25; }}
+ code {{ font: 15px/1.4 ui-monospace, monospace; }}
+</style>
+{body}
+"""
+
+
 class Handler(http.server.BaseHTTPRequestHandler):
     target = None          # Path to the markdown file
 
@@ -155,6 +174,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_GET(self):
+        if self.path.rstrip("/") == "/plain":
+            return self.serve_plain()
         blocks = split_blocks(self.target.read_text(encoding="utf-8"))
         rendered, originals = [], {}
         for i, b in enumerate(blocks):
@@ -173,6 +194,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
             name=html.escape(self.target.name),
             body="\n".join(rendered),
             originals=json.dumps(originals)))
+
+    def serve_plain(self):
+        """The same file with nothing on it, for copying somewhere else.
+
+        No contenteditable, no data-block, no padding or margins. What the
+        editable page carries in its markup travels with a selection, and a
+        receiving editor reads it as formatting the author never applied.
+        """
+        body = pandoc(self.target.read_text(encoding="utf-8"),
+                      "markdown", "html5")
+        self._send(200, PLAIN.format(
+            title=html.escape(self.target.stem), body=body))
 
     def do_POST(self):
         try:
