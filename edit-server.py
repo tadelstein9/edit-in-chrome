@@ -11,11 +11,16 @@ somewhere else. Copying from the editable page carried every paragraph into
 Substack as a blockquote — the editor's own padding and margins travel with the
 selection, and the receiving editor reads them as indentation.
 
-WHY NOT AN EXTENSION. An extension that edits the rendered page and cannot write
-back is a nicer-looking Substack — Tom's point, 2026-08-04. The write-back is the
-whole feature, and once the page is served by our own program the editor can ship
+WHY NOT AN EXTENSION. An extension that reaches into a page someone else served
+can make the text editable and still cannot write your file. The write-back is
+the whole feature, and once the page is served by this program the editor ships
 inside the page. Nothing to install and nothing that breaks when Chrome changes
 its extension API.
+
+⚠ This reasoning has an expiry date. A browser now lets a page open a file the
+user picks and write back to it, which means an extension with its own page can
+do the write-back after all. The objection above applies to the content-script
+shape, not to every extension.
 
 WHY BLOCKS. Converting a whole edited page back to markdown re-wraps every line
 and normalises every emphasis mark, so changing one word produces a diff across
