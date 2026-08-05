@@ -121,6 +121,38 @@ for (const el of document.querySelectorAll('[data-block]')) {{
   }});
 }}
 
+// Clean the clipboard on the way out, so copying from this page is safe and
+// nobody has to remember a second one. The editable blocks carry
+// contenteditable, data-block and their own padding, and a receiving editor
+// reads that markup as formatting the author never applied — an accent bar
+// down every paragraph, in the case that started this. Strip every attribute
+// the editor added, keep the markup that is the document.
+const KEEP = {{A: ['href'], IMG: ['src', 'alt'], TD: ['colspan', 'rowspan'],
+               TH: ['colspan', 'rowspan']}};
+
+function scrub(node) {{
+  for (const el of node.querySelectorAll('*')) {{
+    const keep = KEEP[el.tagName] || [];
+    for (const attr of [...el.attributes])
+      if (!keep.includes(attr.name)) el.removeAttribute(attr.name);
+  }}
+  return node;
+}}
+
+document.addEventListener('copy', (e) => {{
+  const sel = window.getSelection();
+  if (!sel.rangeCount || sel.isCollapsed) return;
+  const holder = document.createElement('div');
+  for (let i = 0; i < sel.rangeCount; i++)
+    holder.appendChild(sel.getRangeAt(i).cloneContents());
+  // The bar can only reach the clipboard through a drag-selection; drop it.
+  for (const el of holder.querySelectorAll('#bar')) el.remove();
+  scrub(holder);
+  e.clipboardData.setData('text/html', holder.innerHTML);
+  e.clipboardData.setData('text/plain', sel.toString());
+  e.preventDefault();
+}});
+
 // Ctrl+A selects the document and not the bar above it. user-select:none on
 // the bar stops a drag from reaching it but does not keep select-all out, so
 // take the key and set the range ourselves. Inside a block being edited,
